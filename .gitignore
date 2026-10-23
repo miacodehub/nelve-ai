@@ -1,6 +1,11 @@
+# Environment variables
 .env
+
+# Dependencies and virtual environments
 backend/node_modules/
 vendor/
 .venv/
-.txt
-.docx
+
+# Ignore ALL text files and Word documents (Fixed syntax)
+*.txt
+*.docx

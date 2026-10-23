@@ -1,3 +1,0 @@
-when i click on saved places and clicked on search again, the saved places still stays
-(make search and saved places different htmls)
-

@@ -1,3 +1,0 @@
-# Used Docker
-# Used Postgres and pgvector for DATABASE
-docker exec -it mia_nomad_db psql -U mia_nomad -d mia_nomad_db
