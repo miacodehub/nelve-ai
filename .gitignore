@@ -9,3 +9,17 @@ vendor/
 # Ignore ALL text files and Word documents (Fixed syntax)
 *.txt
 *.docx
+
+# Frontend dependencies
+frontend/node_modules/
+
+# TypeScript build output folders (where the compiled JS goes)
+dist/
+build/
+out/
+
+# TypeScript log files if things crash
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
