@@ -1,0 +1,9 @@
+- error handling:
+    what happens when a place doesn't exist in the database?
+- Authentication and Authorization
+- Hosting - vercel, cloudflare, supabase
+- feedback : thumbs up - increases the likelihood of showing the place; same but opposite for thumbs down
+
+
+concern:
+how to get people to use it? like why would they? hmmmm

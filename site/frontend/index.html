@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/frontend/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nelve.ai</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+ 
+<header class="site-header">
+  <button type="button" id="logoutBtn">Log out</button>
+
+  <div class="brand">
+  <img src="logo_mascot.png" alt="Nelve fox" class="brand-logo">
+  <h1 class="brand-title">nelve.ai</h1>
+</div>
+
+  <p class="tagline">Personal travel recommender, matched to your vibe.</p>
+</header>
+
+
+  <div class="controls" id="searchControls">
+    <div class="input-group">
+      <input type="text" id="location" placeholder="location (e.g. Rome)">
+    </div>
+
+    <div class="input-group">
+      <input type="text" id="vibe" placeholder="type a vibe...">
+    </div>
+
+    <button id="searchBtn">Search</button>
+    <button id="savedPlacesBtn">Saved Places</button>
+  </div>
+
+  <p id="validationError" class="validation-error" hidden></p>
+
+  <ul id="results"></ul>
+
+  <script src="dist/app.js"></script>
+</body>
+</html>

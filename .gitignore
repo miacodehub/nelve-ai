@@ -1,0 +1,6 @@
+.env
+backend/node_modules/
+vendor/
+.venv/
+.txt
+.docx

@@ -1,0 +1,2 @@
+open route service - for calculating distance
+secret for login tokens : c4f38646d59d7e01aa85cb1afd4ef2ee871413dee359b5b37bc54cc49c259e6b

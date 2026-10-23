@@ -1,0 +1,6 @@
+Starting Backend:
+    - Since the backend and database is hosted on a Docker container, to start the backend, do the following:
+    > start the Docker container either manually or with the command "docker start mia_nomad_db"
+    > start the server.ts file from the backend folder:
+        cd path\to\nomad\backend
+        npx tsx server.ts"

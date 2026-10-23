@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nelve.ai — Sign in</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>nelve.ai</h1>
+  <p class="tagline">Personal travel recommender, matched to your vibe.</p>
+
+  <section id="authPanel">
+    <h2 id="authTitle">Welcome to Nelve</h2>
+    <p id="authMessage">Sign in to discover places tailored to you.</p>
+
+    <form id="authForm">
+      <input
+        type="email"
+        id="authEmail"
+        placeholder="Email address"
+        autocomplete="email"
+        required
+      />
+
+      <input
+        type="password"
+        id="authPassword"
+        placeholder="Password (at least 8 characters)"
+        autocomplete="current-password"
+        minlength="8"
+        required
+      />
+
+      <button type="submit" id="authSubmit">Log in</button>
+    </form>
+
+    <p id="authError" class="validation-error" hidden></p>
+
+    <button type="button" id="authToggle">
+      Need an account? Sign up
+    </button>
+  </section>
+
+  <script src="dist/auth.js"></script>
+</body>
+</html>

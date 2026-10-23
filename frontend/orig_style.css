@@ -1,0 +1,233 @@
+body {
+  background: #141414;
+  color: #eee;
+  font-family: Georgia, serif;
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+h1 {
+  font-size: 2.5em;
+  margin-bottom: 4px;
+  letter-spacing: -1px;
+}
+.tagline {
+  color: #888;
+  font-size: 0.95em;
+  margin-bottom: 24px;
+}
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+input[type="text"] {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  color: #eee;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1em;
+  transition: border-color 0.15s;
+}
+input[type="text"]:focus {
+  outline: none;
+  border-color: #e8c547;
+}
+label {
+  font-size: 0.95em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #aaa;
+}
+button {
+  background: #2a2a2a;
+  color: #eee;
+  border: 1px solid #333;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+button:hover {
+  background: #383838;
+}
+#searchBtn {
+  background: #e8c547;
+  color: #141414;
+  border: none;
+  font-weight: bold;
+}
+#searchBtn:hover {
+  background: #f0d368;
+}
+#results {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.place-card {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.place-card:hover {
+  border-color: #444;
+  transform: translateY(-1px);
+}
+.place-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.place-name {
+  font-size: 1.15em;
+}
+.place-match {
+  font-size: 0.85em;
+  color: #888;
+}
+.like-btn, .dislike-btn {
+  font-size: 1.1em;
+  padding: 8px 12px;
+  background: #2a2a2a;
+  color: #eee;
+  border: 1px solid #333;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.like-btn.liked {
+  opacity: 0.5;
+}
+.dislike-btn.disliked {
+  opacity: 0.5;
+}
+.loading {
+  color: #888;
+  font-style: italic;
+  padding: 20px 0;
+}
+
+.save-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+
+
+
+.save-btn.saved {
+  background: #f0e8ff;
+}
+
+/* Like, dislike, and save icons */
+.like-btn,
+.dislike-btn,
+.save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.like-btn svg,
+.dislike-btn svg,
+.save-btn svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+/* Default outline colors */
+.like-btn {
+  color: #16a34a;
+}
+
+.dislike-btn {
+  color: #dc4545;
+}
+
+.save-btn {
+  color: #c99a20;
+}
+
+/* Fill the icons when selected */
+.like-btn.liked svg path {
+  fill: currentColor;
+}
+
+.dislike-btn.disliked svg path {
+  fill: currentColor;
+}
+
+.save-btn.saved svg path {
+  fill: currentColor;
+}
+
+/* Subtle backgrounds when selected */
+.like-btn.liked,
+.dislike-btn.disliked,
+.save-btn.saved {
+  
+  background-color: transparent;
+}
+
+/* Hover feedback */
+
+.like-btn:hover svg path,
+.dislike-btn:hover svg path,
+.save-btn:hover svg path {
+  stroke-width: 2.4;
+}
+
+
+.like-btn:focus,
+.like-btn:active {
+  outline: none;
+  box-shadow: none;
+}
+
+
+.like-btn:hover,
+.like-btn.active:hover,
+.dislike-btn:hover,
+.dislike-btn.active:hover,
+.save-btn:hover,
+.save-btn.active:hover {
+  background-color: #333;
+}
+
+
+.place-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.place-distance {
+  font-size: 0.8rem;
+  color: #999;
+}

@@ -1,0 +1,206 @@
+simplify! over everything else, it should be extremely simple to use!
+once you have the main features, improve what you're alreay doing with algorithms, etc
+like maybe it can provide heuristics, etc idk
+No app can do everything but aim to do one thing well. Helps keep it tight.
+
+Authorization:
+- anyone with a token can access the page.
+
+
+
+<shared thingy>
+
+Mission: Create a cozy travel experience - through workflow inherent in the app.
+Vision: One stop for all group-travel related book-keeping.
+
+
+V1:
+
+USER LOGS IN
+
+CREATE TRIP : generate unique trip id
+
+RECOMMENDATION ENGINE:
+    Enter closest place to it: 
+    the purpose of this application is to recommend lesser known places that are rich in history, cultural significance, etc
+    Toggle : Machine Learning (app learns your preferences and tunes recommendations)
+
+    start with cool/historic places
+    learn user behavior
+    tune engine
+
+    add caution - check updated news and safety precautions before visiting
+    Travel safety: Information about historical sites and destinations can change. 
+    Before visiting, check current local news, official advisories, opening conditions, access restrictions, and relevant safety guidance.
+
+DESTINATION:
+    - Enter destination: ________ (user can fill out)
+    - Vote on a destination: each user with unique trip id  enters a destination or votes among existing locations on the page
+    - Recommendations: the app can also suggest places based on what the user interests are and what their budget is
+
+TRIP NOTES:
+    - let anyone with a token create/edit notes
+    - allow paragraphs; bullet points; to do lists
+
+
+V2:
+
+BUDGETING:
+give them an excel sheet of sorts - that can be accessed anywhere and people can add rows, columns and add totals
+
+
+SCHEDULING:
+
+
+V3 - Pivot:
+
+
+pick narrow down to country/state/city etc.
+travel recommendation engine - set the vibe and I suggest  (lesser) known places for you.
+
+
+tell me which ones you visited/liked 
+app uses feedback to improve recommendations
+
+review the place in-app; so i'll have a large collection of places and
+
+a sharing platform built around it
+
+what if...user drops the location/enters a place they are at ... and then enter a vibe and then share recommendations...
+ user can choose to either get recs based on vibe or previous visited places..
+
+return top 5 results - in order of best suited
+---------------------------------------------------------------------------------------------------------------------------------------------
+Build V1:
+One next step, no more scope changes: build the smallest version (vibe + location + feedback loop, one city) 
+this week, and get 10 real people — not hypothetical personas — to use it and tell you if they'd use it again next week. 
+That's the actual YC-worthy move available to you right now. Everything else is still just planning.
+
+
+data - places that are not well known (algo)
+vibe - filters (matches recommendation with a percentage)
+asks for feedback
+improves itself
+
+----------------------------------------------------------
+mission:
+
+
+show it to real users
+make tech good
+purpose - historically curious travelers
+name - the curious nomad; knowmad(already taken); 
+maybe usres can upload images and find suggestions close to it
+clean places// image similarity
+----------------------------------------------------------
+DATABASE:
+Tables:
+Table-1 : user Table (uname, email_id, created_at)
+Table-2 : places (place info - name, location, description, tags), AND embedding vector (this is what gets searched on)
+Table-3 : user_feedback (gets fed back to the rec. engine, drives personalization)(
+    The signal that drives personalization: user_id, place_id, and whether they liked/disliked it. 
+    This is what your history-mode query vector gets built from. 
+    Also where "visited" could live if you want to distinguish "went and liked" from "just liked the idea of it."
+)
+Table-4 : saved places - if the user happens to like a place but not visit it yet.
+----------------------------------------------------------
+BACKEND:
+
+a. Recommendation Engine:
+b. feedback Machine
+c. Toggle for showing regular places based on vibe and maybe (lesser known places if toggle is on
+or toggle switches the algo for regular places ranked on vibe
+vs 
+lesser known places
+)
+d. show distance from city if outside city ; else show within city (v2)
+e. the feedback can be scoured for keywords that can be pushed back into tags field for the places? idk. maybe not because a single user user_feedback
+isnt enough. 
+f. how is popularity calculated?
+-- comments show keywords like good adjectives indicating it's lesser known.
+-- 
+
+
+SIMPLIFYY!!!
+
+TO_BUILD: parts to be written:
+
+recommendation engine - gotta be improved
+v1 : embed query ,  embed place description; return top places (ranked by ratings, number of ratings) = return top 10 closest embeddings
+v2 : after enough feedback from user(whats the number?), 
+
+saving user visited places
+
+
+APPLICATION SERVICE!
+
+backend to DB logic 
+    - using queries for now
+Backend APIs for user activities
+    - already kinda built in
+feedback machine:
+    - explicit signal - the user likes/saves it/ if location is on, user visits the place.
+    - implicit signal - user opened the place/clicked on it 
+
+Notificatioon microservice
+
+lesser known places(v2)
+
+Authorization and authentication 
+
+Middleware to log errors
+
+Rate limiting on application servers and throttling APIs
+
+Configure asynchronous communication - like sending a email when the user registers
+
+cron jobs
+
+version apis
+
+But keep in mind how you can run it both with and without Docker in production.
+
+elasticsearch for data piepline - querying data
+
+firewall
+----------------------------------------------------------
+
+
+
+imPROVING recommendation late on:
+Here's the mechanism, plainly:
+
+**Right now**, a search does this: turn the typed vibe into a vector → compare to every place's vector → rank by closeness.
+
+**Using feedback** works the same way, just swapping *what* gets turned into a vector:
+
+1. Every place the user has liked/saved already has an embedding (you computed it once when seeding).
+2. Average those liked places' vectors together → that average is a single vector representing "what this user tends to like."
+3. Compare *that* vector to every place's vector, same as a normal search — rank by closeness.
+
+So a "based on your history" search isn't a different algorithm — it's the exact same comparison step, just fed a vector built from past likes instead of typed text. That's why we built it as a query-vector-vs-place-vectors comparison from the start: whichever vector goes in (typed text or liked-places average), the ranking logic doesn't change.
+
+**Weighting, if you want it smarter later:** instead of a plain average, weight more recent likes higher, or weight a "save" more than a "click." But the plain average is a real, working version to start with.
+
+One concrete effect this has on your toggle: right now you have "vibe search" vs. "least known first." This adds a third mode — "based on what you've liked" — using the same underlying comparison, just a different input vector.
+
+Want to build this now (step 3, after embeddings exist), or finish plain vibe-search first and add history-mode after?
+
+
+cautions:
+> any papers or licenses to worry about
+
+Other to do:
+Whats the radius ? it's hardcoded to 5000 in the fetchPlaces.ts. 
+
+
+Here's the whole thing, no code, just the logic:
+
+You already have embeddings for your 10 hardcoded places — each one's name+description turned into 384 numbers representing its meaning.
+Turn the typed query into the same kind of numbers — same embedding model, applied to the search text instead of a place description.
+Compare the query's numbers to every place's numbers — pgvector's <=> operator measures how close two sets of numbers are. Smaller distance = more similar meaning.
+Sort by that distance, closest first — that's your ranked, vibe-matched result list.
+
+-------------------------------------------------------------------
+IMPROVEMENTS:
+data scraping : https://github.com/bartholomej/atlas-obscura-api

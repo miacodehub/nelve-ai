@@ -1,0 +1,17 @@
+Yes — that's exactly what's built, with one real gap. Let's go through it piece by piece.
+
+**Cold start (no data yet) → pure vibe match.** ✅ Already working: `/search` embeds the typed query and ranks by similarity alone when there's no like history.
+
+**Once data exists → blend in what they liked.** ✅ Just built this — the 70/30 blend in `/search`. One thing worth tuning: right now it's a fixed 70/30 regardless of how much history exists. A cleaner version: weight the blend by how much data you actually have — barely any likes, blend in less; lots of likes, blend in more. Small change, worth doing, not urgent tonight.
+
+**Explicit signal (thumbs up/down).** ✅ Built, already feeding the blend.
+
+**Implicit signal (clicking/opening a place).** ❌ **Not built yet — this is the real gap.** Right now, nothing happens when someone clicks a result card, only when they click thumbs up/down. To capture "they opened this place" as a weaker signal, you'd need: a click handler on the card itself, a new lightweight endpoint (something like `/view` instead of `/feedback`), and a way to weight it lower than an explicit like when blending (a click means mild interest, a like means real interest — shouldn't count equally).
+
+**GPS-confirmed visits** — mentioned, correctly scoped as later (needs real device permissions and distance math), not tonight.
+
+**On the CNN question — no, you don't need one, and here's why plainly:** CNNs are built for spatial data — images, where nearby pixels relate to each other. What you have is text (embeddings) and behavioral signals (likes, clicks) — totally different data shape. What you're actually building is closer to a **hybrid recommender system**: content-based filtering (embeddings) blended with behavioral signals (likes/clicks), weighted by confidence. That's a real, legitimate ML architecture — just not a CNN. No need to bolt on a deep learning model you don't need.
+
+**Your three-step order is right:** finish the algorithm (add the click/implicit signal, tune the blend weighting) → fix the UI → add auth. That's exactly what's left, in sensible order.
+
+**One next step:** want to add the click-tracking endpoint now (the one real gap), or move to UI cleanup first since the algorithm technically already does the core thing you described?
