@@ -51,7 +51,7 @@ logoutBtn.addEventListener("click", () => {
 
 async function refreshSavedPlaceIds() {
   const response = await authenticatedFetch(
-    `http://localhost:3000/saved-places`
+    `https://nelve-ai.onrender.com/saved-places`
   );
 
   if (!response.ok) {
@@ -184,7 +184,7 @@ function renderPlaces(places: any[]) {
 
       try {
         const response = await authenticatedFetch(
-          "http://localhost:3000/feedback",
+          "https://nelve-ai.onrender.com/feedback",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -229,7 +229,7 @@ function renderPlaces(places: any[]) {
 
       try {
         const response = await authenticatedFetch(
-          "http://localhost:3000/saved-places",
+          "https://nelve-ai.onrender.com/saved-places",
           {
             method: isSaved ? "DELETE" : "POST",
             headers: { "Content-Type": "application/json" },
@@ -295,7 +295,7 @@ li.addEventListener("click", (e) => {
     JSON.stringify([...viewedPlaceIds])
   );
 
-  authenticatedFetch("http://localhost:3000/view", {
+  authenticatedFetch("https://nelve-ai.onrender.com/view", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ placeId: p.id }),
@@ -377,7 +377,7 @@ searchButton.addEventListener("click", async () => {
     const q = vibeInput.value.trim();
 
     const url =
-      `http://localhost:3000/search?location=${encodeURIComponent(loc)}` +
+      `https://nelve-ai.onrender.com/search?location=${encodeURIComponent(loc)}` +
       `&q=${encodeURIComponent(q)}`;
 
     const response = await authenticatedFetch(url);
@@ -391,7 +391,7 @@ searchButton.addEventListener("click", async () => {
     await refreshSavedPlaceIds();
     showingSavedPlaces = false;
     const feedbackResponse = await authenticatedFetch(
-  "http://localhost:3000/feedback"
+  "https://nelve-ai.onrender.com/feedback"
 );
 
   if (!feedbackResponse.ok) {

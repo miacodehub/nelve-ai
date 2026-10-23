@@ -3,7 +3,7 @@ const button = document.getElementById("searchBtn");
 const resultsList = document.getElementById("results");
 button.addEventListener("click", async () => {
     const q = vibe.value;
-    const res = await fetch(`http://localhost:3000/search?q=${encodeURIComponent(q)}`);
+    const res = await fetch(`https://nelve-ai.onrender.com/search?q=${encodeURIComponent(q)}`);
     const places = await res.json();
     resultsList.innerHTML = "";
     for (const p of places) {

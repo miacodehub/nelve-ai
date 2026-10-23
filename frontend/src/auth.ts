@@ -49,7 +49,7 @@ authForm.addEventListener("submit", async (event) => {
   try {
     const endpoint = authMode === "login" ? "/login" : "/register";
 
-    const response = await fetch(`http://localhost:3000${endpoint}`, {
+    const response = await fetch(`https://nelve-ai.onrender.com${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
