@@ -11,13 +11,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
+/*
 const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT || 5432),
   database: process.env.DB_NAME,
+});
+*/
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
 });
 
 const jwtSecret = process.env.JWT_SECRET;
