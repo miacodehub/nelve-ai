@@ -2,13 +2,18 @@
 
 Place discovery based on your mood. Tell Nelve how you feel and where you are, and it recommends places that fit.
 
-Live: https://nelve.ai (landing page: https://spot-discover-engine.lovable.app)
+Live: https://fascinating-pastelito-e2859e.netlify.app/authentication.html (landing page: https://spot-discover-engine.lovable.app)
 
 ## What it does
 
 - Takes a **mood + location** and returns matching place recommendations.
 - Learns from your **likes, dislikes and views**, so results get more personal over time.
 - Shows **driving distances** to each recommended place.
+
+## Demo of the application  
+
+<div style="position: relative; padding-bottom: 53.125%; height: 0;"><iframe src="https://www.loom.com/embed/4784a192ea5241c6a77d26d8e62b6507" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+
 
 ## How the AI/ML works
 
