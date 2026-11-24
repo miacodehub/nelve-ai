@@ -12,7 +12,9 @@ Live: https://fascinating-pastelito-e2859e.netlify.app/authentication.html (land
 
 ## Demo of the application  
 
-<div style="position: relative; padding-bottom: 53.125%; height: 0;"><iframe src="https://www.loom.com/embed/4784a192ea5241c6a77d26d8e62b6507" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+Loom link: https://www.loom.com/share/4784a192ea5241c6a77d26d8e62b6507
+
+
 
 
 ## How the AI/ML works
