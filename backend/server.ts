@@ -195,8 +195,8 @@ async function getDrivingDistances(
     ...destinations.map((place) => [place.lng, place.lat]),
   ];
 
-  const response = await fetch(
-    "https://api.openrouteservice.org/v2/matrix/driving-car",
+   const response = await fetch(
+    "https://api.heigit.org/openrouteservice/v2/matrix/driving-car",
     {
       method: "POST",
       headers: {
