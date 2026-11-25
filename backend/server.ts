@@ -1,4 +1,3 @@
-
 import express from "express";
 import { Pool } from "pg";
 import cors from "cors";
@@ -168,14 +167,49 @@ async function getEmbedder() {
   return embedder;
 }
 
+// Fetch a URL and parse the reply as JSON. If the service answers with an
+// error or with something that isn't JSON (an HTML or XML page), throw an
+// error that names the service and shows the start of the reply, so the
+// Render logs say exactly which call failed.
+async function fetchJson(url: string, options: any, label: string) {
+  const response = await fetch(url, options);
+  const text = await response.text();
+
+  if (!response.ok) {
+    throw new Error(`${label} error ${response.status}: ${text.slice(0, 200)}`);
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`${label} returned something that isn't JSON: ${text.slice(0, 200)}`);
+  }
+}
+
+// Remember places we've already looked up, so repeat searches don't hit Nominatim.
+const geocodeCache = new Map<string, { lat: number; lng: number }>();
+
 async function geocode(placeName: string) {
-  const res = await fetch(
+  const key = placeName.trim().toLowerCase();
+  const cached = geocodeCache.get(key);
+  if (cached) return cached;
+
+  const data = await fetchJson(
     `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeName)}&format=json&limit=1`,
-    { headers: { "User-Agent": "nomad-app" } }
+    {
+      headers: {
+        "User-Agent": "Nelve/1.0 (https://nelve.ai)",
+        Accept: "application/json",
+      },
+    },
+    "Nominatim"
   );
-  const data = await res.json();
-  if (data.length === 0) throw new Error("place not found");
-  return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+
+  if (!Array.isArray(data) || data.length === 0) throw new Error("place not found");
+
+  const result = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  geocodeCache.set(key, result);
+  return result;
 }
 
 async function getDrivingDistances(
@@ -195,13 +229,14 @@ async function getDrivingDistances(
     ...destinations.map((place) => [place.lng, place.lat]),
   ];
 
-   const response = await fetch(
+  const data = await fetchJson(
     "https://api.heigit.org/openrouteservice/v2/matrix/driving-car",
     {
       method: "POST",
       headers: {
         Authorization: apiKey,
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify({
         locations,
@@ -210,15 +245,9 @@ async function getDrivingDistances(
         metrics: ["distance"],
         units: "mi",
       }),
-    }
+    },
+    "OpenRouteService"
   );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`OpenRouteService error ${response.status}: ${errorText}`);
-  }
-
-  const data = await response.json();
 
   return data.distances[0].map(
     (distance: number | null) => distance
@@ -249,118 +278,143 @@ function distanceInMiles(
 
 
 app.get("/search", authenticateToken, async (req, res) => {
-  const location = String(req.query.location ?? "");
-  const q = String(req.query.q ?? "");
-  //const leastKnown = req.query.leastKnown === "true";
-  const userId = res.locals.userId as number;
-  let latFilter = "";
-  let origin: { lat: number; lng: number } | null = null;
-  let params: any[] = [];
+  try {
+    const location = String(req.query.location ?? "");
+    const q = String(req.query.q ?? "");
+    //const leastKnown = req.query.leastKnown === "true";
+    const userId = res.locals.userId as number;
+    let latFilter = "";
+    let origin: { lat: number; lng: number } | null = null;
+    let params: any[] = [];
 
-  if (location) {
-    const { lat, lng } = await geocode(location);
-    origin = { lat, lng };
+    if (location) {
+      const { lat, lng } = await geocode(location);
+      origin = { lat, lng };
 
-    const degrees = 2;
-    latFilter = "WHERE lat BETWEEN $2 AND $3 AND lng BETWEEN $4 AND $5";
-    params = [lat - degrees, lat + degrees, lng - degrees, lng + degrees];
+      const degrees = 2;
+      latFilter = "WHERE lat BETWEEN $2 AND $3 AND lng BETWEEN $4 AND $5";
+      params = [lat - degrees, lat + degrees, lng - degrees, lng + degrees];
+    }
+
+    const embed = await getEmbedder();
+    const output = await embed(q, { pooling: "mean", normalize: true });
+    let queryVector = Array.from(output.data) as number[];
+
+    // blend in user's like history, if any
+
+    // Use the user's feedback to personalize the search vector.
+    // Keep only the latest signal per place and signal type.
+    const feedback = await pool.query(
+      `SELECT DISTINCT ON (f.place_id, f.signal_type)
+         p.embedding, f.liked, f.signal_type
+       FROM user_feedback f
+       JOIN places p ON p.id = f.place_id
+       WHERE f.user_id = $1
+       ORDER BY f.place_id, f.signal_type, f.created_at DESC`,
+      [userId]
+    );
+
+    const likes = feedback.rows.filter(
+      (r) => r.signal_type !== "view" && r.liked === true
+    );
+
+    const dislikes = feedback.rows.filter(
+      (r) => r.signal_type !== "view" && r.liked === false
+    );
+
+    const views = feedback.rows.filter(
+      (r) => r.signal_type === "view"
+    );
+
+    // Average the embeddings for each type of feedback.
+    const averageVector = (rows: any[]): number[] | null => {
+      if (rows.length === 0) return null;
+
+      const vectors = rows.map(
+        (r) => JSON.parse(r.embedding) as number[]
+      );
+
+      return queryVector.map(
+        (_, i) =>
+          vectors.reduce((sum, vector) => sum + vector[i], 0) /
+          vectors.length
+      );
+    };
+
+    const avgLikes = averageVector(likes);
+    const avgDislikes = averageVector(dislikes);
+    const avgViews = averageVector(views);
+
+    // Keep the search query dominant, reward likes, weakly reward views,
+    // and move away from places similar to disliked places.
+    queryVector = queryVector.map((value, i) => {
+      let adjusted = value * 0.7;
+
+      if (avgLikes) adjusted += avgLikes[i] * 0.3;
+      if (avgViews) adjusted += avgViews[i] * 0.09;
+      if (avgDislikes) adjusted -= avgDislikes[i] * 0.25;
+
+      return adjusted;
+    });
+
+
+    const vectorParam = JSON.stringify(queryVector);
+    params.unshift(vectorParam);
+
+    const orderBy =  "embedding <=> $1";
+    // leastKnown ? "popularity ASC" :
+    const result = await pool.query(
+      `SELECT id, name, description, lat, lng, popularity, 1 - (embedding <=> $1) AS match
+       FROM places ${latFilter} ORDER BY ${orderBy} LIMIT 10`,
+      params
+    );
+
+
+    let places = result.rows.map((place: any) => ({
+      ...place,
+      distanceMiles: null as number | null,
+      distanceApprox: false,
+    }));
+
+    if (origin && places.length > 0) {
+      const from = origin;
+      const destinations = places.map((place: any) => ({
+        lat: Number(place.lat),
+        lng: Number(place.lng),
+      }));
+
+      let distances: (number | null)[];
+      let approx = false;
+
+      try {
+        distances = await getDrivingDistances(from, destinations);
+      } catch (error) {
+        // If the routing service is down, still return results, using
+        // straight-line distances instead of driving distances.
+        console.error("Driving distances failed, using straight-line distances:", error);
+        approx = true;
+        distances = destinations.map((d) =>
+          Math.round(distanceInMiles(from.lat, from.lng, d.lat, d.lng) * 10) / 10
+        );
+      }
+
+      places = places.map((place: any, index: number) => ({
+        ...place,
+        distanceMiles: distances[index],
+        distanceApprox: approx,
+      }));
+    }
+
+    res.json(places);
+  } catch (error: any) {
+    console.error("Search error:", error);
+
+    if (error?.message === "place not found") {
+      return res.status(404).json({ error: "We couldn't find that location" });
+    }
+
+    return res.status(500).json({ error: "Couldn't search for places" });
   }
-
-  const embed = await getEmbedder();
-  const output = await embed(q, { pooling: "mean", normalize: true });
-  let queryVector = Array.from(output.data) as number[];
-
-  // blend in user's like history, if any
-  
-  // Use the user's feedback to personalize the search vector.
-  // Keep only the latest signal per place and signal type.
-  const feedback = await pool.query(
-    `SELECT DISTINCT ON (f.place_id, f.signal_type)
-       p.embedding, f.liked, f.signal_type
-     FROM user_feedback f
-     JOIN places p ON p.id = f.place_id
-     WHERE f.user_id = $1
-     ORDER BY f.place_id, f.signal_type, f.created_at DESC`,
-    [userId]
-  );
-
-  const likes = feedback.rows.filter(
-    (r) => r.signal_type !== "view" && r.liked === true
-  );
-
-  const dislikes = feedback.rows.filter(
-    (r) => r.signal_type !== "view" && r.liked === false
-  );
-
-  const views = feedback.rows.filter(
-    (r) => r.signal_type === "view"
-  );
-
-  // Average the embeddings for each type of feedback.
-  const averageVector = (rows: any[]): number[] | null => {
-    if (rows.length === 0) return null;
-
-    const vectors = rows.map(
-      (r) => JSON.parse(r.embedding) as number[]
-    );
-
-    return queryVector.map(
-      (_, i) =>
-        vectors.reduce((sum, vector) => sum + vector[i], 0) /
-        vectors.length
-    );
-  };
-
-  const avgLikes = averageVector(likes);
-  const avgDislikes = averageVector(dislikes);
-  const avgViews = averageVector(views);
-
-  // Keep the search query dominant, reward likes, weakly reward views,
-  // and move away from places similar to disliked places.
-  queryVector = queryVector.map((value, i) => {
-    let adjusted = value * 0.7;
-
-    if (avgLikes) adjusted += avgLikes[i] * 0.3;
-    if (avgViews) adjusted += avgViews[i] * 0.09;
-    if (avgDislikes) adjusted -= avgDislikes[i] * 0.25;
-
-    return adjusted;
-  });
-
-
-  const vectorParam = JSON.stringify(queryVector);
-  params.unshift(vectorParam);
-
-  const orderBy =  "embedding <=> $1";
-  // leastKnown ? "popularity ASC" :
-  const result = await pool.query(
-    `SELECT id, name, description, lat, lng, popularity, 1 - (embedding <=> $1) AS match
-     FROM places ${latFilter} ORDER BY ${orderBy} LIMIT 10`,
-    params
-  );
-
-
-let places = result.rows.map((place: any) => ({
-  ...place,
-  distanceMiles: null as number | null,
-}));
-
-if (origin && places.length > 0) {
-  const distances = await getDrivingDistances(
-    origin,
-    places.map((place: any) => ({
-      lat: Number(place.lat),
-      lng: Number(place.lng),
-    }))
-  );
-
-  places = places.map((place: any, index: number) => ({
-    ...place,
-    distanceMiles: distances[index],
-  }));
-}
-
-res.json(places);
 });
 
 
