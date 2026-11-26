@@ -16,6 +16,12 @@ Loom link: https://www.loom.com/share/4784a192ea5241c6a77d26d8e62b6507
 
 
 
+https://github.com/user-attachments/assets/4240de43-2f53-4515-af65-699abb7a2ec7
+
+
+
+
+
 
 ## How the AI/ML works
 
